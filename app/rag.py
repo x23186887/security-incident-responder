@@ -6,26 +6,69 @@ import re
 
 def extract_keywords(incident_text: str) -> list:
     """
-    Extract the most relevant security keywords from the incident description
-    to use as search terms for NVD and CISA.
+    Extract the most relevant security keywords from the incident description.
+    Uses priority matching — longer/more specific terms checked first.
     """
+    # Ordered by specificity — longest phrases first to avoid partial matches
     security_terms = [
-        "sql injection", "xss", "cross-site scripting", "ransomware",
-        "phishing", "malware", "ddos", "brute force", "buffer overflow",
-        "remote code execution", "rce", "privilege escalation", "data breach",
-        "insider threat", "zero day", "log4j", "apache", "nginx", "windows",
-        "linux", "ssh", "rdp", "smb", "dns", "vpn", "firewall", "authentication"
+        # Specific attack types first
+        "sql injection",
+        "cross-site scripting",
+        "remote code execution",
+        "privilege escalation",
+        "supply chain",
+        "insider threat",
+        "data breach",
+        "credential exposure",
+        "brute force",
+        "ransomware",
+        "phishing",
+        "malware",
+        "ddos",
+        "buffer overflow",
+        "zero day",
+        "log4j",
+        # Technologies
+        "apache",
+        "nginx",
+        "windows",
+        "linux",
+        "aws",
+        "s3",
+        "ssh",
+        "rdp",
+        "smb",
+        "dns",
+        "vpn",
+        # Generic security terms last
+        "vulnerability",
+        "exploit",
+        "backdoor",
+        "exfiltration",
+        "encryption",
+        "authentication",
+        "firewall"
     ]
 
     incident_lower = incident_text.lower()
     found = [term for term in security_terms if term in incident_lower]
 
-    # Always add a generic keyword based on first few words
-    words = re.findall(r'\b\w{4,}\b', incident_lower)
-    generic = words[0] if words else "vulnerability"
+    # If nothing matched, extract meaningful nouns (4+ chars, not common words)
+    if not found:
+        stopwords = {
+            "that", "this", "with", "have", "from", "they", "been",
+            "were", "their", "also", "which", "when", "into", "than",
+            "then", "some", "what", "about", "there", "during", "after",
+            "before", "junior", "senior", "using", "used", "found",
+            "show", "shows", "appear", "appears", "discovered", "contain",
+            "containing", "including", "server", "system", "network",
+            "access", "data", "file", "files", "account", "user", "port"
+        }
+        import re
+        words = re.findall(r'\b[a-z]{4,}\b', incident_lower)
+        found = [w for w in words if w not in stopwords][:2]
 
-    return found if found else [generic]
-
+    return found if found else ["vulnerability"]
 
 async def build_context(incident_text: str) -> dict:
     """

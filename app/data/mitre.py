@@ -1,9 +1,6 @@
-import httpx
-
-MITRE_URL = "https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json"
-
 # Keyword map — maps incident types to real MITRE ATT&CK technique IDs
 TECHNIQUE_MAP = {
+    # Credential & Access
     "sql injection": {
         "technique_id": "T1190",
         "technique_name": "Exploit Public-Facing Application",
@@ -101,6 +98,145 @@ TECHNIQUE_MAP = {
             "M1032 - Multi-factor Authentication"
         ],
         "detection": "Monitor account usage patterns, flag access outside normal hours, track privilege escalation."
+    },
+    # NEW — Supply Chain
+    "supply chain": {
+        "technique_id": "T1195",
+        "technique_name": "Supply Chain Compromise",
+        "tactic": "Initial Access",
+        "description": "Adversaries manipulate products or delivery mechanisms before the customer receives them, including compromising third-party software dependencies.",
+        "mitigations": [
+            "M1051 - Update Software",
+            "M1016 - Vulnerability Scanning",
+            "M1013 - Application Developer Guidance",
+            "M1045 - Code Signing"
+        ],
+        "detection": "Monitor for unexpected changes in software packages, verify integrity of third-party dependencies, audit CI/CD pipeline access."
+    },
+    # NEW — Credential/Secret Exposure
+    "credential exposure": {
+        "technique_id": "T1552",
+        "technique_name": "Unsecured Credentials",
+        "tactic": "Credential Access",
+        "description": "Adversaries search for and find unsecured credentials in files, environment variables, or version control systems.",
+        "mitigations": [
+            "M1047 - Audit",
+            "M1027 - Password Policies",
+            "M1026 - Privileged Account Management",
+            "M1017 - User Training"
+        ],
+        "detection": "Monitor version control commits for secrets, scan repositories for exposed API keys and credentials."
+    },
+    "api key": {
+        "technique_id": "T1552",
+        "technique_name": "Unsecured Credentials",
+        "tactic": "Credential Access",
+        "description": "Adversaries search for and find unsecured credentials in files, environment variables, or version control systems.",
+        "mitigations": [
+            "M1047 - Audit",
+            "M1027 - Password Policies",
+            "M1026 - Privileged Account Management"
+        ],
+        "detection": "Monitor version control commits for secrets, scan repositories for exposed API keys and credentials."
+    },
+    # NEW — Cloud Storage Misconfiguration
+    "s3": {
+        "technique_id": "T1530",
+        "technique_name": "Data from Cloud Storage",
+        "tactic": "Collection",
+        "description": "Adversaries access data from improperly secured cloud storage such as misconfigured S3 buckets.",
+        "mitigations": [
+            "M1047 - Audit",
+            "M1022 - Restrict File and Directory Permissions",
+            "M1018 - User Account Management"
+        ],
+        "detection": "Monitor cloud storage access logs, alert on public bucket access, track unusual data downloads."
+    },
+    "cloud": {
+        "technique_id": "T1530",
+        "technique_name": "Data from Cloud Storage",
+        "tactic": "Collection",
+        "description": "Adversaries access data from improperly secured cloud storage objects.",
+        "mitigations": [
+            "M1047 - Audit",
+            "M1022 - Restrict File and Directory Permissions",
+            "M1018 - User Account Management"
+        ],
+        "detection": "Monitor cloud storage access logs, alert on public bucket configurations, track unusual data access."
+    },
+    # NEW — Remote Code Execution
+    "remote code execution": {
+        "technique_id": "T1190",
+        "technique_name": "Exploit Public-Facing Application",
+        "tactic": "Initial Access",
+        "description": "Adversaries exploit vulnerabilities in internet-facing applications to execute arbitrary code remotely.",
+        "mitigations": [
+            "M1048 - Application Isolation and Sandboxing",
+            "M1051 - Update Software",
+            "M1030 - Network Segmentation",
+            "M1016 - Vulnerability Scanning"
+        ],
+        "detection": "Monitor application logs for unusual requests, process creation from web server processes, unexpected outbound connections."
+    },
+    "apache": {
+        "technique_id": "T1190",
+        "technique_name": "Exploit Public-Facing Application",
+        "tactic": "Initial Access",
+        "description": "Adversaries exploit vulnerabilities in Apache and other public-facing web servers to gain initial access.",
+        "mitigations": [
+            "M1048 - Application Isolation and Sandboxing",
+            "M1051 - Update Software",
+            "M1016 - Vulnerability Scanning"
+        ],
+        "detection": "Monitor Apache access and error logs, watch for path traversal patterns, alert on shell spawned from web processes."
+    },
+    # NEW — Backdoor / Persistence
+    "backdoor": {
+        "technique_id": "T1505",
+        "technique_name": "Server Software Component",
+        "tactic": "Persistence",
+        "description": "Adversaries abuse legitimate extensible development features of servers to establish persistent access.",
+        "mitigations": [
+            "M1042 - Disable or Remove Feature or Program",
+            "M1045 - Code Signing",
+            "M1026 - Privileged Account Management"
+        ],
+        "detection": "Monitor for unexpected files in web server directories, new server-side scripts, unusual process spawning."
+    },
+    # EXISTING — kept for completeness
+    "buffer overflow": {
+        "technique_id": "T1203",
+        "technique_name": "Exploitation for Client Execution",
+        "tactic": "Execution",
+        "description": "Adversaries exploit software vulnerabilities in client applications to execute code.",
+        "mitigations": [
+            "M1050 - Exploit Protection",
+            "M1048 - Application Isolation and Sandboxing"
+        ],
+        "detection": "Monitor for application crashes, unexpected process creation, memory corruption indicators."
+    },
+    "privilege escalation": {
+        "technique_id": "T1068",
+        "technique_name": "Exploitation for Privilege Escalation",
+        "tactic": "Privilege Escalation",
+        "description": "Adversaries exploit vulnerabilities to execute code with elevated permissions.",
+        "mitigations": [
+            "M1051 - Update Software",
+            "M1050 - Exploit Protection",
+            "M1048 - Application Isolation and Sandboxing"
+        ],
+        "detection": "Monitor for privilege changes, unexpected use of admin accounts, security tool tampering."
+    },
+    "exfiltration": {
+        "technique_id": "T1041",
+        "technique_name": "Exfiltration Over C2 Channel",
+        "tactic": "Exfiltration",
+        "description": "Adversaries steal data by exfiltrating it over existing command and control channels.",
+        "mitigations": [
+            "M1031 - Network Intrusion Prevention",
+            "M1057 - Data Loss Prevention"
+        ],
+        "detection": "Monitor for unusual outbound data transfers, large DNS queries, unexpected cloud uploads."
     }
 }
 
@@ -119,11 +255,19 @@ DEFAULT_TECHNIQUE = {
 
 
 def get_mitre_technique(incident_text: str) -> dict:
-    """Match incident text to the most relevant MITRE ATT&CK technique."""
+    """
+    Match incident text to the most relevant MITRE ATT&CK technique.
+    Checks longer/more specific phrases first to avoid false matches.
+    """
     incident_lower = incident_text.lower()
-    for keyword, technique in TECHNIQUE_MAP.items():
+
+    # Sort by keyword length descending — longer = more specific = higher priority
+    sorted_techniques = sorted(TECHNIQUE_MAP.keys(), key=len, reverse=True)
+
+    for keyword in sorted_techniques:
         if keyword in incident_lower:
-            return technique
+            return TECHNIQUE_MAP[keyword]
+
     return DEFAULT_TECHNIQUE
 
 

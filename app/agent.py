@@ -30,7 +30,9 @@ async def generate_workflow(incident_description: str) -> dict:
 
     # Step 2 — Build enriched prompt with real data injected
     prompt = ChatPromptTemplate.from_messages([
-        ("system", """You are a senior cybersecurity incident response expert at a top MSSP.
+        (
+            "system",
+            """You are a senior cybersecurity incident response expert at a top MSSP.
 You have been given REAL threat intelligence data from:
 - NIST National Vulnerability Database (NVD)
 - MITRE ATT&CK Framework
@@ -50,45 +52,53 @@ Be specific, technical, and prioritized. Format your response exactly as shown b
 
 ---
 
-Based on the above real-world threat intelligence, generate the remediation workflow."""),
-
-        ("human", """SECURITY INCIDENT REPORTED:
+Based on the above real-world threat intelligence, generate the remediation workflow."""
+        ),
+        (
+            "human",
+            """SECURITY INCIDENT REPORTED:
 {incident}
 
 Generate a complete remediation workflow using the real CVE and MITRE data provided above.
 Format your response EXACTLY like this:
 
- INCIDENT SUMMARY
+INCIDENT SUMMARY
 [2-3 sentence summary of what happened and what attack vector was used]
 
- SEVERITY ASSESSMENT
-Severity: [Critical/High/Medium/Low]
+SEVERITY ASSESSMENT
+Severity: [Use ONLY these criteria:
+  CRITICAL = active system compromise, data already exfiltrated, ransomware deployed, or RCE confirmed
+  HIGH = credible attack in progress, credentials stolen, significant breach risk but contained
+  MEDIUM = vulnerability discovered but not yet exploited, single user affected, limited blast radius
+  LOW = misconfiguration found, no evidence of exploitation, theoretical risk only]
 MITRE Technique: {mitre_technique_id} — {mitre_technique_name}
 Reasoning: [Why this severity based on real CVE scores above]
 
- IMMEDIATE ACTIONS (Within 1 hour)
+IMMEDIATE ACTIONS (Within 1 hour)
 1. [Specific action]
 2. [Specific action]
 3. [Specific action]
 
- SHORT-TERM REMEDIATION (Within 24 hours)
+SHORT-TERM REMEDIATION (Within 24 hours)
 1. [Step with specific tool/command where relevant]
 2. [Step]
 3. [Step]
 4. [Step]
 
- LONG-TERM PREVENTIVE MEASURES
+LONG-TERM PREVENTIVE MEASURES
 1. [Measure]
 2. [Measure]
 3. [Measure]
- RECOMMENDED SECURITY TOOLS
+
+RECOMMENDED SECURITY TOOLS
 [List 4-5 specific tools relevant to this incident type]
 
- RELEVANT CVEs TO PATCH
+RELEVANT CVEs TO PATCH
 [Reference the real CVE IDs provided above with their severity scores]
 
- COMPLIANCE & REPORTING
-[Note relevant compliance frameworks — NIST, ISO 27001, GDPR etc. and reporting obligations]""")
+COMPLIANCE & REPORTING
+[Note relevant compliance frameworks — NIST, ISO 27001, GDPR etc. and reporting obligations]"""
+        )
     ])
 
     # Step 3 — Run through LLM
